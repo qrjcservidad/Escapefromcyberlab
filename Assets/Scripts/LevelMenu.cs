@@ -7,7 +7,7 @@ public class LevelMenu : MonoBehaviour
 {
     public void OpenLevel(int levelId)
     {
-        // appear minihorror game 1 2 3
+        // appear Scene 1 2 3 and 4
         string levelName = "Scene " + levelId; 
         SceneManager.LoadScene(levelName);
     }
