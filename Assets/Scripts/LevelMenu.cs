@@ -5,10 +5,17 @@ using UnityEngine.SceneManagement;
 
 public class LevelMenu : MonoBehaviour
 {
+    // Para sa Level Buttons 1, 2, 3, at 4 (May space)
     public void OpenLevel(int levelId)
     {
-        // appear Scene 1 2 3 and 4
+        // Lalabas na "Scene 1", "Scene 2", "Scene 3", "Scene 4"
         string levelName = "Scene " + levelId; 
         SceneManager.LoadScene(levelName);
+    }
+
+    // Para sa User Guide / Tutorial Button
+    public void OpenTutorial()
+    {
+        SceneManager.LoadScene("Tutorial");
     }
 }

@@ -3,8 +3,10 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-    public GameObject pauseMenuUI;
-    public GameObject optionsMenuUI; // Idagdag ito
+    [Header("UI Panels")]
+    public GameObject pauseMenuUI;    // Panel ng Pause Menu
+    public GameObject optionsMenuUI;  // Panel ng Options/Settings
+
     public static bool isPaused = false;
 
     void Update()
@@ -13,7 +15,15 @@ public class PauseMenu : MonoBehaviour
         {
             if (isPaused)
             {
-                Resume();
+                // Kung nakabukas ang options menu, bumalik muna sa pause menu
+                if (optionsMenuUI != null && optionsMenuUI.activeSelf)
+                {
+                    BackToPauseMenu();
+                }
+                else
+                {
+                    Resume();
+                }
             }
             else
             {
@@ -24,34 +34,53 @@ public class PauseMenu : MonoBehaviour
 
     public void Resume()
     {
-        pauseMenuUI.SetActive(false);
+        if (pauseMenuUI != null) pauseMenuUI.SetActive(false);
         if (optionsMenuUI != null) optionsMenuUI.SetActive(false);
-        Time.timeScale = 1f;
+
+        Time.timeScale = 1f; // Ipagpatuloy ang laro
         isPaused = false;
+
+        // I-lock at itago ang cursor para sa camera control
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public void Pause()
     {
-        pauseMenuUI.SetActive(true);
-        Time.timeScale = 0f;
+        if (pauseMenuUI != null) pauseMenuUI.SetActive(true);
+        if (optionsMenuUI != null) optionsMenuUI.SetActive(false);
+
+        Time.timeScale = 0f; // I-pause ang laro
         isPaused = true;
+
+        // I-unlock at ipakita ang cursor para makapindot sa menu
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
-    // Idagdag itong function para sa Settings Button
+    // TAWAGAN ITO SA SETTINGS BUTTON (OpenSettings)
     public void OpenSettings()
     {
-        pauseMenuUI.SetActive(false);
-        if (optionsMenuUI != null) optionsMenuUI.SetActive(true);
+        if (pauseMenuUI != null) pauseMenuUI.SetActive(false);   // Itatago ang Pause Menu
+        if (optionsMenuUI != null) optionsMenuUI.SetActive(true); // Lalabas ang Options Panel
+    }
+
+    // TAWAGAN ITO SA BACK BUTTON SA LOOB NG OPTIONS PANEL
+    public void BackToPauseMenu()
+    {
+        if (optionsMenuUI != null) optionsMenuUI.SetActive(false); // Itatago ang Options Panel
+        if (pauseMenuUI != null) pauseMenuUI.SetActive(true);    // Lalabas muli ang Pause Menu
     }
 
     public void LoadMainMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Main Menu");
+        SceneManager.LoadScene("Main Menu"); 
     }
 
     public void QuitGame()
     {
+        Time.timeScale = 1f;
         Application.Quit();
     }
 }

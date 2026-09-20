@@ -7,7 +7,6 @@ public class Scene2Quest : MonoBehaviour
 {
     [Header("UI Elements")]
     public GameObject terminalUI;
-    public TextMeshProUGUI objectiveText;
     public TextMeshProUGUI terminalFeedbackText;
 
     [Header("Door Obstacles & Transition")]
@@ -23,12 +22,6 @@ public class Scene2Quest : MonoBehaviour
     private void Start()
     {
         if (terminalUI != null) terminalUI.SetActive(false);
-
-        if (objectiveText != null)
-        {
-            objectiveText.text = "Objective: Access the Terminal";
-        }
-
         if (terminalFeedbackText != null) terminalFeedbackText.text = "";
 
         // Keep the transition zone disabled until the door is unlocked
@@ -57,11 +50,6 @@ public class Scene2Quest : MonoBehaviour
         {
             sceneTransitionZone.SetActive(true);
         }
-
-        if (objectiveText != null)
-        {
-            objectiveText.text = "Objective: Door Unlocked! Proceed through the doorway.";
-        }
     }
 
     public void OnWrongPassword()
@@ -77,11 +65,6 @@ public class Scene2Quest : MonoBehaviour
             }
 
             clearTextCoroutine = StartCoroutine(ClearFeedbackTextAfterDelay(2.0f));
-        }
-
-        if (objectiveText != null)
-        {
-            objectiveText.text = "Access Denied! Check hints around Scene 2.";
         }
     }
 

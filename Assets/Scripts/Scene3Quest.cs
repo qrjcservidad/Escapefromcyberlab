@@ -1,16 +1,10 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using TMPro;
 
 public class Scene3Quest : MonoBehaviour, IInteractable
 {
-    [Header("UI Elements")]
-    public GameObject objectiveUI;          // I-drag dito ang Objective Panel / Canvas
-    public TextMeshProUGUI objectiveText;   // I-drag dito ang ComputerObjectiveText Component
-
     [Header("Quest Targets & Doors")]
-    [Header("Quest Targets")]
     public GameObject computerObjective;  // Dito mo i-drag ang Computer Objective
     public GameObject greenMesh;          // Dito mo i-drag ang Pickup (8) / Access Card
 
@@ -27,18 +21,7 @@ public class Scene3Quest : MonoBehaviour, IInteractable
 
     private void Start()
     {
-        // 1. Siguraduhing LITAW ang Objective UI at nakalagay ang panimulang Text
-        if (objectiveUI != null) 
-        {
-            objectiveUI.SetActive(true);
-        }
-
-        if (objectiveText != null)
-        {
-            objectiveText.text = "Objective: Access the Computer";
-        }
-
-        // 2. Naka-OFF muna ang transition zone sa simula
+        // Naka-OFF muna ang transition zone sa simula
         if (sceneTransitionZone != null)
         {
             sceneTransitionZone.SetActive(false);
@@ -51,11 +34,6 @@ public class Scene3Quest : MonoBehaviour, IInteractable
         if (!pcInteracted)
         {
             pcInteracted = true;
-
-            if (objectiveText != null)
-            {
-                objectiveText.text = "Objective: Find the access card!";
-            }
         }
     }
 
@@ -72,12 +50,6 @@ public class Scene3Quest : MonoBehaviour, IInteractable
         if (sceneTransitionZone != null)
         {
             sceneTransitionZone.SetActive(true);
-        }
-
-        // Lalabas ang Door Unlocked Text
-        if (objectiveText != null)
-        {
-            objectiveText.text = "Objective: Door Unlocked! Proceed to Scene 4.";
         }
     }
 

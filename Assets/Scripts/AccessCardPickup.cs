@@ -25,7 +25,6 @@ public class AccessCardPickup : MonoBehaviour
 
     private void Update()
     {
-        // Kung walang player o prompt text, huwag ituloy para iwas error
         if (playerTransform == null || promptText == null) return;
 
         float distance = Vector3.Distance(transform.position, playerTransform.position);
@@ -69,11 +68,12 @@ public class AccessCardPickup : MonoBehaviour
         GameObject door = GameObject.Find("doors");
         if (door != null) door.SetActive(false);
 
-        GameObject objTextGo = GameObject.Find("ComputerObjectiveText");
-        if (objTextGo != null)
+        // TAWAG SA TUTORIAL MANAGER:
+        // Awtomatikong iche-check ang Card Pickup Task sa checklist
+        TutorialManager tutorial = FindFirstObjectByType<TutorialManager>();
+        if (tutorial != null)
         {
-            TMP_Text objText = objTextGo.GetComponent<TMP_Text>();
-            if (objText != null) objText.text = "Door Unlocked!";
+            tutorial.CompletePickupTask();
         }
 
         Destroy(gameObject);
