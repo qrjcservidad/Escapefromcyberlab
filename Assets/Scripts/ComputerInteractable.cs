@@ -36,20 +36,34 @@ public class ComputerInteractable : MonoBehaviour
         // Toggle or open computer UI kapag pinindot ang E habang malapit
         if (isPlayerNearby && Input.GetKeyDown(KeyCode.E))
         {
-            if (computerSystemPanel != null && computerSystemPanel.activeSelf)
-            {
-                CloseComputerUI();
-            }
-            else
-            {
-                OpenComputerUI();
-            }
+            ToggleComputerUI();
         }
 
         // Saraduhan ang UI kung pindutin ang Escape habang bukas
         if (computerSystemPanel != null && computerSystemPanel.activeSelf && Input.GetKeyDown(KeyCode.Escape))
         {
             CloseComputerUI();
+        }
+    }
+
+    // CALL THIS FUNCTION FROM THE ON CLICK () EVENT OF YOUR MOBILE 'E' BUTTON
+    public void OnInteractButtonPressed()
+    {
+        if (isPlayerNearby)
+        {
+            ToggleComputerUI();
+        }
+    }
+
+    private void ToggleComputerUI()
+    {
+        if (computerSystemPanel != null && computerSystemPanel.activeSelf)
+        {
+            CloseComputerUI();
+        }
+        else
+        {
+            OpenComputerUI();
         }
     }
 
@@ -66,14 +80,10 @@ public class ComputerInteractable : MonoBehaviour
             }
         }
 
-        // 1. PAUSE GAME TIME & PLAYER CONTROLS
-        Time.timeScale = 0f;
+        // NOT PAUSING GAME TIME ANYMORE (Pinanatiling 1f para tuloy ang laro)
+        Time.timeScale = 1f;
 
-        // 2. UNLOCK AT IPAKITA ANG CURSOR PARA SA UI INTERACTION
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-
-        // 3. FOCUS SA INPUT FIELD PARA MAKAPAG-TYPE AGAD
+        // FOCUS SA INPUT FIELD PARA MAKAPAG-TYPE AGAD
         if (pinInputField != null)
         {
             pinInputField.Select();
@@ -81,7 +91,7 @@ public class ComputerInteractable : MonoBehaviour
         }
 
         // TAWAG SA TUTORIAL MANAGER
-        TutorialManager tutorial = FindFirstObjectByType<TutorialManager>();
+        TutorialManager tutorial = Object.FindFirstObjectByType<TutorialManager>();
         if (tutorial != null)
         {
             tutorial.CompleteTerminalTask();
@@ -95,12 +105,8 @@ public class ComputerInteractable : MonoBehaviour
             computerSystemPanel.SetActive(false);
         }
 
-        // 1. RESUME GAME TIME & PLAYER CONTROLS
+        // RESUME / KEEP GAME RUNNING NORMALLY
         Time.timeScale = 1f;
-
-        // 2. IBATIN ANG CURSOR SA LOCKED STATE PARA SA CAMERA CONTROL
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
 
         // Ipakita muli ang "Press E" prompt kung malapit pa ang player
         if (isPlayerNearby && interactPromptText != null)
@@ -141,6 +147,15 @@ public class ComputerInteractable : MonoBehaviour
                 statusText.text = "INCORRECT PIN";
                 statusText.color = Color.red;
             }
+
+            // =========================================================
+            // TAWAGIN ANG SCENE1QUEST PARA MAGBAWAS NG 20 SECONDS SA TIMER
+            // =========================================================
+            Scene1Quest questScript = Object.FindFirstObjectByType<Scene1Quest>();
+            if (questScript != null)
+            {
+                questScript.OnWrongPassword(); // Bawas 20s sa Timer
+            }
         }
     }
 
@@ -165,7 +180,7 @@ public class ComputerInteractable : MonoBehaviour
         {
             isPlayerNearby = false;
             
-            // Isara ang UI at ibalik ang game time/cursor sa normal kapag umalis ang player
+            // Isara ang UI kapag umalis ang player
             CloseComputerUI();
 
             if (interactPromptText != null) interactPromptText.SetActive(false);

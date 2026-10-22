@@ -1,13 +1,18 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class InteractableClue : MonoBehaviour
 {
-    [Header("UI Panels")]
-    public GameObject cluePanelUI; // Popup panel para sa clue na ito
-    public GameObject promptUI;    // UI Text (e.g., "Press G to Inspect")
+    // Global variable para sa kasalukuyang clue na malapit sa player
+    public static InteractableClue currentActiveClue;
+
+    [Header("UI Panels & Buttons")]
+    public GameObject cluePanelUI; // Tanging UI panel lang para sa clue na ito (hal. Clue1_PaperPanel)
+    public GameObject promptUI;    // UI Text (hal. "Press G to Inspect")
+    public Button inspectButtonG;  // Inspect Button (G) galing sa MobileControls
 
     [Header("Tutorial Link")]
-    public TutorialManager tutorialManager; // Drag the GameObject with TutorialManager here
+    public TutorialManager tutorialManager;
 
     private bool isPlayerInRange = false;
 
@@ -16,7 +21,6 @@ public class InteractableClue : MonoBehaviour
         if (cluePanelUI != null) cluePanelUI.SetActive(false);
         if (promptUI != null) promptUI.SetActive(false);
 
-        // Backup plan: Pag nakalimutan mong i-drag, hahanapin pa rin nito sa scene
         if (tutorialManager == null)
         {
             tutorialManager = FindFirstObjectByType<TutorialManager>();
@@ -25,25 +29,28 @@ public class InteractableClue : MonoBehaviour
 
     private void Update()
     {
-        // Toggle UI display kapag pinindot ang 'G' key
-        if (isPlayerInRange && Input.GetKeyDown(KeyCode.G))
+        // Gagana LANG ang Keycode 'G' kapag ang CLUE NA ITO ang mismong malapit sa Player
+        if (isPlayerInRange && currentActiveClue == this && Input.GetKeyDown(KeyCode.G))
         {
-            if (cluePanelUI != null)
-            {
-                bool currentState = cluePanelUI.activeSelf;
-                bool nextState = !currentState;
+            ToggleCluePanel();
+        }
+    }
 
-                cluePanelUI.SetActive(nextState);
+    public void ToggleCluePanel()
+    {
+        // Gagana LAMANG kapag nasa range at ito ang aktibong clue
+        if (!isPlayerInRange || currentActiveClue != this || cluePanelUI == null) return;
 
-                // Itago ang "Press G" text kapag bukas ang clue UI
-                if (promptUI != null) promptUI.SetActive(!nextState);
+        bool currentState = cluePanelUI.activeSelf;
+        bool nextState = !currentState;
 
-                // Magche-check LANG kapag BINUKSAN ang board
-                if (nextState && tutorialManager != null)
-                {
-                    tutorialManager.CompleteInspectTask();
-                }
-            }
+        cluePanelUI.SetActive(nextState);
+
+        if (promptUI != null) promptUI.SetActive(!nextState);
+
+        if (nextState && tutorialManager != null)
+        {
+            tutorialManager.CompleteInspectTask();
         }
     }
 
@@ -52,9 +59,16 @@ public class InteractableClue : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerInRange = true;
+            currentActiveClue = this; // Set ito bilang ang natatanging aktibong clue!
+
             if (promptUI != null && (cluePanelUI == null || !cluePanelUI.activeSelf))
             {
                 promptUI.SetActive(true);
+            }
+
+            if (inspectButtonG != null)
+            {
+                inspectButtonG.gameObject.SetActive(true);
             }
         }
     }
@@ -64,8 +78,25 @@ public class InteractableClue : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerInRange = false;
+
+            // Kapag umalis, alisin ito bilang active clue
+            if (currentActiveClue == this)
+            {
+                currentActiveClue = null;
+            }
+
             if (promptUI != null) promptUI.SetActive(false);
             if (cluePanelUI != null) cluePanelUI.SetActive(false);
+            if (inspectButtonG != null) inspectButtonG.gameObject.SetActive(false);
+        }
+    }
+
+    // Static helper function para sa Mobile Button On Click
+    public static void TriggerCurrentClue()
+    {
+        if (currentActiveClue != null)
+        {
+            currentActiveClue.ToggleCluePanel();
         }
     }
 }

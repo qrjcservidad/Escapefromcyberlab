@@ -31,7 +31,7 @@ public class QuizManager : MonoBehaviour
     [SerializeField] private GameObject doorToUnlock;
     
     [Header("Scene Transition Reference")]
-    [SerializeField] private GameObject sceneTransitionZone; // New: Slot para sa SceneTransitionZone
+    [SerializeField] private GameObject sceneTransitionZone; // Slot para sa SceneTransitionZone
 
     [Header("Quiz Questions (5 Questions)")]
     [SerializeField] private List<QuestionData> questionList = new List<QuestionData>();
@@ -104,10 +104,13 @@ public class QuizManager : MonoBehaviour
         }
         else
         {
+            // MALI ANG SAGOT: MAGPAPATAW NG -20 SECONDS PENALTY SA TIMER
+            ApplyTimerPenalty();
+
             if (feedbackText != null)
             {
                 feedbackText.color = Color.red;
-                feedbackText.text = "INCORRECT! Restarting quiz from Question 1...";
+                feedbackText.text = "INCORRECT! -20s PENALTY!\nRestarting quiz from Question 1...";
             }
             Invoke(nameof(ResetQuiz), 1.2f);
         }
@@ -145,13 +148,33 @@ public class QuizManager : MonoBehaviour
             }
             else
             {
+                // MALI ANG PASSCODE: MAGPAPATAW DIN NG -20 SECONDS PENALTY
+                ApplyTimerPenalty();
+
                 if (feedbackText != null)
                 {
                     feedbackText.color = Color.red;
-                    feedbackText.text = "WRONG CODE! Try again.";
+                    feedbackText.text = "WRONG CODE! -20s PENALTY!";
                 }
                 passcodeInputField.text = "";
             }
+        }
+    }
+
+    // Function para bawasan ng 20 seconds ang timer sa Scene2Quest man o Scene1Quest
+    private void ApplyTimerPenalty()
+    {
+        Scene2Quest scene2Script = Object.FindFirstObjectByType<Scene2Quest>();
+        if (scene2Script != null)
+        {
+            scene2Script.OnWrongPassword();
+            return;
+        }
+
+        Scene1Quest scene1Script = Object.FindFirstObjectByType<Scene1Quest>();
+        if (scene1Script != null)
+        {
+            scene1Script.OnWrongPassword();
         }
     }
 

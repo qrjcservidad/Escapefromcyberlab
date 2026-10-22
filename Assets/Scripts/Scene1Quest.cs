@@ -10,9 +10,10 @@ public class Scene1Quest : MonoBehaviour
     public TMP_Text terminalFeedbackText; 
     public TMP_Text timerText;
 
-    [Header("Level Title Display")]
+    [Header("Intro & Level Title Display")]
     public GameObject levelTitleUI; // Slot para sa Level 1 UI/Text Object
-    public float levelTitleDuration = 6f; // Ilang segundo bago mawala (6 seconds)
+    public TMP_Text storyText;       // Slot para sa Story Intro Text (TextMeshPro)
+    public float introDisplayDuration = 8f; // Ilang segundo bago mawala (8 seconds)
 
     [Header("Door & Transition Settings")]
     public GameObject door;
@@ -37,12 +38,23 @@ public class Scene1Quest : MonoBehaviour
             sceneTransitionZone.SetActive(false);
         }
 
-        // Simulan ang Level Title 6-second hide sequence
+        // Set ang story text content
+        if (storyText != null)
+        {
+            storyText.gameObject.SetActive(true);
+            storyText.text = "you woke up in this unknown place\n" +
+                             "you scan your surroundings and you find no one\n" +
+                             "you try and shout to get anyone's attention to no avail\n" +
+                             "i guess the only option now is to escape";
+        }
+
         if (levelTitleUI != null)
         {
             levelTitleUI.SetActive(true);
-            StartCoroutine(HideLevelTitleRoutine());
         }
+
+        // Simulan ang 6-second hide sequence para sa Intro at Level Title
+        StartCoroutine(HideIntroRoutine());
     }
 
     private void Update()
@@ -64,13 +76,19 @@ public class Scene1Quest : MonoBehaviour
         }
     }
 
-    private IEnumerator HideLevelTitleRoutine()
+    private IEnumerator HideIntroRoutine()
     {
-        yield return new WaitForSeconds(levelTitleDuration);
+        yield return new WaitForSeconds(introDisplayDuration);
 
+        // Itatago ang level title at story text pagkaraan ng 6 seconds
         if (levelTitleUI != null)
         {
             levelTitleUI.SetActive(false);
+        }
+
+        if (storyText != null)
+        {
+            storyText.gameObject.SetActive(false);
         }
     }
 
@@ -95,10 +113,34 @@ public class Scene1Quest : MonoBehaviour
         if (terminalFeedbackText != null) terminalFeedbackText.text = "";
     }
 
-    public void OnCorrectPassword()
+    // =========================================================
+    // TAWAGIN ITO SA ON CLICK () EVENT NG "correct horse battery staple" BUTTON
+    // =========================================================
+    public void OnCorrectAnswer()
     {
         questCompleted = true;
         isTimerRunning = false;
+
+        if (terminalFeedbackText != null)
+        {
+            terminalFeedbackText.color = Color.green;
+            terminalFeedbackText.text = "DOOR UNLOCKED!\nYOU CAN PROCEED TO THE DOOR!";
+        }
+
+        StartCoroutine(CompleteQuestSequenceAfterDelay(2.0f));
+    }
+
+    // =========================================================
+    // TAWAGIN ITO SA ON CLICK () EVENT NG MGA MALING SAGOT NA BUTTON
+    // =========================================================
+    public void OnWrongAnswer()
+    {
+        OnWrongPassword();
+    }
+
+    private IEnumerator CompleteQuestSequenceAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
 
         if (terminalUI != null) terminalUI.SetActive(false);
 
@@ -113,12 +155,24 @@ public class Scene1Quest : MonoBehaviour
         }
     }
 
+    public void OnCorrectPassword()
+    {
+        OnCorrectAnswer();
+    }
+
+    // =========================================================
+    // PAG MALI ANG PASSWORD O SELECTION: BAWAS 20 SECONDS SA TIMER
+    // =========================================================
     public void OnWrongPassword()
     {
+        // Babawasan ng 20 seconds ang natitirang oras
+        timeRemaining -= 20f;
+        if (timeRemaining < 0) timeRemaining = 0;
+
         if (terminalFeedbackText != null)
         {
             terminalFeedbackText.color = Color.red;
-            terminalFeedbackText.text = "ERROR: INCORRECT PASSWORD!\nACCESS DENIED.";
+            terminalFeedbackText.text = "ERROR: INCORRECT PASSWORD!\n-20 SECONDS PENALTY!";
 
             if (clearTextCoroutine != null)
             {
@@ -142,7 +196,7 @@ public class Scene1Quest : MonoBehaviour
     {
         if (timerText != null)
         {
-            timerText.text = "<color=red><b>TIME'S UP!</b></color>";
+            timerText.text = "<color=red><b><size=160%>TIME'S UP!</size></b></color>";
         }
 
         Invoke(nameof(RestartScene), 2f);

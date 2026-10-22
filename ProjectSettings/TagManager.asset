@@ -7,6 +7,7 @@ TagManager:
   - Pick Up
   - Computer
   - GreenMesh
+  - Laser
   layers:
   - Default
   - TransparentFX

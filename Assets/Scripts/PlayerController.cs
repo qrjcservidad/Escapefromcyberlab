@@ -6,11 +6,16 @@ using UnityEngine.SceneManagement;
 public class PlayerController : MonoBehaviour
 {
     public float speed = 10f;
+    public float crouchSpeed = 4f; 
     public TextMeshProUGUI countText;
     public TextMeshProUGUI winText;  
 
     private Rigidbody rb;
     private int count;
+
+    // Animation & Crouch References
+    private Animator anim;
+    private bool isCrouching = false;
 
     // Quest Variables
     private bool pcInteracted = false;
@@ -20,15 +25,37 @@ public class PlayerController : MonoBehaviour
     {
         Time.timeScale = 1f;
         rb = GetComponent<Rigidbody>();
+        anim = GetComponentInChildren<Animator>();
+        
         count = 0;
         SetCountText();
         if (winText != null) winText.text = "";
 
-        // Titingnan kung nasa Scene 3 tayo
         if (SceneManager.GetActiveScene().name == "Scene 3" || SceneManager.GetActiveScene().buildIndex == 3)
         {
             isScene3 = true;
         }
+    }
+
+    void Update()
+    {
+        // Keyboard Controls (PC)
+        if (Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.C))
+        {
+            ToggleCrouch();
+        }
+
+        // Animator parameters
+        if (anim != null)
+        {
+            anim.SetBool("IsCrouching", isCrouching);
+        }
+    }
+
+    // --- FUNCTION PARA SA MOBILE BUTTON ---
+    public void ToggleCrouch()
+    {
+        isCrouching = !isCrouching;
     }
 
     void FixedUpdate()
@@ -38,18 +65,24 @@ public class PlayerController : MonoBehaviour
 
         Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical).normalized;
 
-        rb.linearVelocity = movement * speed + new Vector3(0, rb.linearVelocity.y, 0);
+        float currentSpeed = isCrouching ? crouchSpeed : speed;
+
+        rb.linearVelocity = movement * currentSpeed + new Vector3(0, rb.linearVelocity.y, 0);
 
         if (movement != Vector3.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(movement);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 15f * Time.fixedDeltaTime);
         }
+
+        if (anim != null)
+        {
+            anim.SetFloat("speed", movement.magnitude);
+        }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        // Normal Pickups para sa Level 1 / Level 2
         if (other.gameObject.CompareTag("Pick Up"))
         {
             other.gameObject.SetActive(false);
@@ -57,10 +90,8 @@ public class PlayerController : MonoBehaviour
             SetCountText();
         }
 
-        // --- QUEST LOGIC PARA SA SCENE 3 ---
         if (isScene3)
         {
-            // 1. Kapag lumapit sa Computer
             if (other.gameObject.CompareTag("Computer"))
             {
                 if (!pcInteracted)
@@ -73,19 +104,17 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            // 2. Kapag kinuha ang Green Mesh
             if (other.gameObject.CompareTag("GreenMesh"))
             {
                 if (pcInteracted)
                 {
-                    other.gameObject.SetActive(false); // Mawawala ang mesh
+                    other.gameObject.SetActive(false);
                     
                     if (winText != null) 
                     {
                         winText.text = "Door Unlocked!";
                     }
 
-                    // Hahanapin ang doors at itatago para makadaan
                     GameObject doors = GameObject.Find("doors");
                     if (doors != null)
                     {

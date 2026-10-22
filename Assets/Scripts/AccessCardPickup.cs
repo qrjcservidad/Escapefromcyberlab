@@ -4,8 +4,8 @@ using TMPro;
 public class AccessCardPickup : MonoBehaviour
 {
     [Header("Drag Objects Here")]
-    public GameObject promptText;      // I-drag dito ang InteractPromptText
-    public Transform playerTransform;  // I-drag dito ang Player GameObject
+    public GameObject promptText;
+    public Transform playerTransform;
 
     [Header("Settings")]
     public float interactDistance = 4f;
@@ -15,36 +15,45 @@ public class AccessCardPickup : MonoBehaviour
 
     private void Start()
     {
+        if (playerTransform == null)
+        {
+            GameObject playerObj = GameObject.FindWithTag("Player");
+            if (playerObj != null) 
+            {
+                playerTransform = playerObj.transform;
+            }
+        }
+
         if (promptText != null)
         {
             promptRect = promptText.GetComponent<RectTransform>();
             promptTextMesh = promptText.GetComponent<TMP_Text>();
-            promptText.SetActive(false); // Siguradong naka-hide sa start
+            promptText.SetActive(false);
         }
     }
 
     private void Update()
     {
-        if (playerTransform == null || promptText == null) return;
+        if (playerTransform == null) return;
 
         float distance = Vector3.Distance(transform.position, playerTransform.position);
 
         if (distance <= interactDistance)
         {
-            if (!promptText.activeSelf) 
+            if (promptText != null)
             {
-                promptText.SetActive(true);
-            }
+                if (!promptText.activeSelf) promptText.SetActive(true);
 
-            if (promptTextMesh != null)
-            {
-                promptTextMesh.text = "[F] Pick up Access Card";
-            }
+                if (promptTextMesh != null)
+                {
+                    promptTextMesh.text = "[F] Pick up Access Card";
+                }
 
-            if (Camera.main != null && promptRect != null)
-            {
-                Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 0.5f);
-                promptRect.position = screenPos;
+                if (Camera.main != null && promptRect != null)
+                {
+                    Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 0.5f);
+                    promptRect.position = screenPos;
+                }
             }
 
             if (Input.GetKeyDown(KeyCode.F))
@@ -54,26 +63,44 @@ public class AccessCardPickup : MonoBehaviour
         }
         else
         {
-            if (promptText.activeSelf)
+            if (promptText != null && promptText.activeSelf)
             {
                 promptText.SetActive(false);
             }
         }
     }
 
-    private void PickupCard()
+    public void OnPickupButtonPressed()
+    {
+        if (playerTransform == null)
+        {
+            PickupCard();
+            return;
+        }
+
+        float distance = Vector3.Distance(transform.position, playerTransform.position);
+        if (distance <= interactDistance)
+        {
+            PickupCard();
+        }
+    }
+
+    public void PickupCard()
     {
         if (promptText != null) promptText.SetActive(false);
 
-        GameObject door = GameObject.Find("doors");
-        if (door != null) door.SetActive(false);
+        // TAWAIN ANG IDENTIFICATION QUIZ MANAGER LANG
+        IdentificationQuizManager identQuiz = FindFirstObjectByType<IdentificationQuizManager>(FindObjectsInactive.Include);
+        if (identQuiz != null)
+        {
+            identQuiz.UnlockProceedButton();
+            Debug.Log("Access Card Picked Up: Proceed Button Unlocked sa IdentificationQuizManager!");
+        }
 
-        // TAWAG SA TUTORIAL MANAGER:
-        // Awtomatikong iche-check ang Card Pickup Task sa checklist
-        TutorialManager tutorial = FindFirstObjectByType<TutorialManager>();
+        TutorialManager tutorial = FindFirstObjectByType<TutorialManager>(FindObjectsInactive.Include);
         if (tutorial != null)
         {
-            tutorial.CompletePickupTask();
+            tutorial.CompletePickupCardTask();
         }
 
         Destroy(gameObject);

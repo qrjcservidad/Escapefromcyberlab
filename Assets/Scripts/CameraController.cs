@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems; // KAILANGAN PARA SA MOBILE UI CHECK
 
 public class CameraController : MonoBehaviour
 {
@@ -32,22 +33,37 @@ public class CameraController : MonoBehaviour
 
     void Start()
     {
-        // Lock and hide mouse cursor during play
+        // Un-comment lang kung PC build, pero sa Mobile huwag i-lock para gumana ang touch
+        #if !UNITY_ANDROID && !UNITY_IOS
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        #endif
     }
 
     void LateUpdate()
     {
         if (player == null) return;
 
-        // Mouse input for rotation
+        // I-CHECK KUNG SA UI/JOYSTICK NAKAPATONG ANG TOUCH SA MOBILE
+        if (IsTouchingUI())
+        {
+            // HUWAG IGALAW ANG CAMERA KAPAG HAWAK ANG JOYSTICK O BUTTONS
+            UpdateCameraPosition();
+            return;
+        }
+
+        // Mouse/Touch input para sa camera rotation
         currentYaw += Input.GetAxis("Mouse X") * mouseSensitivity;
         currentPitch -= Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-        // Clamp pitch to prevent camera flipping upside down
+        // Clamp pitch para hindi mag-flip ang camera
         currentPitch = Mathf.Clamp(currentPitch, pitchMin, pitchMax);
 
+        UpdateCameraPosition();
+    }
+
+    private void UpdateCameraPosition()
+    {
         // Rotation matrix based on pitch and yaw
         Quaternion rotation = Quaternion.Euler(currentPitch, currentYaw, 0);
 
@@ -60,5 +76,30 @@ public class CameraController : MonoBehaviour
         // Apply position and rotation
         transform.position = targetPosition;
         transform.LookAt(focusPoint);
+    }
+
+    // UTILITY FUNCTION PARA I-FILTER ANG TOUCH SA JOYSTICK/BUTTONS
+    private bool IsTouchingUI()
+    {
+        // Check para sa Mobile Touch Input
+        if (Input.touchCount > 0)
+        {
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch touch = Input.GetTouch(i);
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+                {
+                    return true;
+                }
+            }
+        }
+
+        // Check para sa Mouse/Editor testing
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return true;
+        }
+
+        return false;
     }
 }
